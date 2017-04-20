@@ -49,7 +49,7 @@ class State(object):
         return hash(tuple(sorted(self.__dict__.items())))
 
     def __repr__(self):
-        return "{0},{1},{2}\n{3},{4},{5}".format(
+        return "{},{},{}\n{},{},{}".format(
             self.missionaries_right,
             self.cannibals_right,
             1 if self.boat_location == "right" else 0,

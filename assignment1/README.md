@@ -5,7 +5,7 @@
 - 18 April 2017
 
 ## Running the code
-The script is built in Python 2, so running them should be simple on most computers:
+The script is built in Python 3, so running them should be simple on most computers:
 ```bash
-python missionaries.py [initial_state_filename] [goal_state_filename] [mode] [output_file?]
+python3 missionaries.py [initial_state_filename] [goal_state_filename] [mode] [output_file?]
 ```

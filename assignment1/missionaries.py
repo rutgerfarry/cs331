@@ -22,9 +22,9 @@ if __name__ == "__main__":
 
         explored_set = set()
 
-        print "begin state:::::::::::::::::::::::::::"
-        print begin_state
+        print("begin state:::::::::::::::::::::::::::")
+        print (begin_state)
 
-        print "final state:::::::::::::::::::::::::::"
-        print final_state
+        print ("final state:::::::::::::::::::::::::::")
+        print (final_state)
 
