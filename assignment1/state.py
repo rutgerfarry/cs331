@@ -13,20 +13,40 @@ class State(object):
 
     """
 
-    def __init__(self, data_string):
+    def __init__(self, m_right, c_right, m_left, c_left, boat_loc):
+        self.missionaries_right = m_right
+        self.cannibals_right = c_right
+
+        self.missionaries_left = m_left
+        self.cannibals_left = c_left
+
+        if boat_loc == "left" or boat_loc == "right":
+            self.boat_location = boat_loc
+        else:
+            raise ValueError("boat location must be left or right")
+
+
+    @staticmethod
+    def from_string(data_string):
         right_bank = data_string.split("\n")[0].split(",")
         left_bank = data_string.split("\n")[1].split(",")
 
-        self.missionaries_right = int(right_bank[0])
-        self.cannibals_right = int(right_bank[1])
+        m_right = int(right_bank[0])
+        c_right = int(right_bank[1])
+        m_left = int(left_bank[0])
+        c_left = int(left_bank[1])
+        boat_loc = "right" if int(right_bank[2]) == 1 else "left"
 
-        self.missionaries_left = int(left_bank[0])
-        self.cannibals_left = int(left_bank[1])
+        return State(m_right, c_right, m_left, c_left, boat_loc)
 
-        if int(right_bank[2]) == 1:
-            self.boat_location = "right"
-        else:
-            self.boat_location = "left"
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
 
     def __repr__(self):
         return "{0},{1},{2}\n{3},{4},{5}".format(
@@ -36,3 +56,4 @@ class State(object):
             self.missionaries_left,
             self.cannibals_left,
             1 if self.boat_location == "left" else 0)
+
