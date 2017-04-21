@@ -187,6 +187,28 @@ def bfs(begin_state, goal_state):
                     return True
                 frontier.put(child)
 
+def dfs(begin_state, goal_state):
+    if begin_state == goal_state:
+        return True
+
+    frontier = queue.LifoQueue()
+    frontier.put(Node(begin_state, None, None))
+    explored = set()
+
+    while True:
+        if frontier.empty():
+            return False
+
+        node = frontier.get()
+        explored.add(node)
+        children = child_nodes(node)
+        for child in children:
+            if child not in explored or child not in frontier:
+                if goal_state == child.state:
+                    print_actions(child)
+                    return True
+                frontier.put(child)
+
 def print_actions(node):
     while node != None:
         print(node.action)
@@ -198,7 +220,7 @@ def main():
         begin_state = State.from_string(open(sys.argv[1]).read())
         goal_state = State.from_string(open(sys.argv[2]).read())
 
-        bfs(begin_state, goal_state)
+        dfs(begin_state, goal_state)
 
 # Prevent running if imported as a module
 if __name__ == "__main__":
