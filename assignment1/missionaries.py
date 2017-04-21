@@ -76,13 +76,28 @@ class State(object):
                 + "{} boat\n".format(1 if self.boat_location == Boat.RIGHT else 0))
 
 class Node(object):
-    def __init__(self, state, parent, action):
+    def __init__(self, state, parent, action, cost=0):
         self.parent = parent
         self.state = state
         self.action = action
+        self.cost = cost
 
     def __repr__(self):
         return str(self.state)
+
+    def __lt__(self, other):
+        return self.cost < other.cost
+
+    def __gt__(self, other):
+        return self.cost > other.cost
+
+    def __eq__(self, other):
+        if isinstance(other, Node):
+            return self.cost == other.cost
+        return False
+
+    def __hash__(self):
+        return self.state.__hash__()
 
 # Takes a state and returns the set of possible successor states
 def child_nodes(node):
@@ -238,6 +253,29 @@ def iterative_deepening_search(begin_state, goal_state):
         if result != "cutoff":
             return result
 
+# Lower score is closer to solution
+def score(current_state, goal_state):
+    return ((goal_state.missionary_left - current_state.missionary_left) +
+            (goal_state.cannibal_left - current_state.cannibal_left))
+
+def a_star(begin_state, goal_state):
+    if begin_state == goal_state:
+        return True
+    begin_node = Node(begin_state, None, None)
+    frontier = queue.PriorityQueue()
+    frontier.put((score(begin_node.state, goal_state), begin_node))
+    explored = set()
+
+    while frontier:
+        node = frontier.get()[1]
+        explored.add(node)
+        for child in child_nodes(node):
+            if child not in explored:
+                if goal_state == child.state:
+                    print_actions(child)
+                    return True
+                frontier.put((score(child.state, goal_state), child))
+
 def print_actions(node):
     while node != None:
         print(node.action)
@@ -249,7 +287,7 @@ def main():
         begin_state = State.from_string(open(sys.argv[1]).read())
         goal_state = State.from_string(open(sys.argv[2]).read())
 
-    iterative_deepening_search(begin_state, goal_state)
+    a_star(begin_state, goal_state)
 
 # Prevent running if imported as a module
 if __name__ == "__main__":
