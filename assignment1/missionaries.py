@@ -209,6 +209,35 @@ def dfs(begin_state, goal_state):
                     return True
                 frontier.put(child)
 
+def depth_limited_search(begin_state, goal_state, limit):
+    start_node = Node(begin_state, None, None)
+    return recursive_dls(start_node, goal_state, limit)
+
+def recursive_dls(node, goal_state, limit):
+    if node.state == goal_state:
+        return True
+    elif limit == 0:
+        return "cutoff"
+    else:
+        cutoff_occurred = False
+        for child in child_nodes(node):
+            result = recursive_dls(child, goal_state, limit - 1)
+            if result == "cutoff":
+                cutoff_occurred = True
+            elif result == True:
+                print_actions(child)
+                return True
+        if cutoff_occurred:
+            return "cutoff"
+        else:
+            return False
+
+def iterative_deepening_search(begin_state, goal_state):
+    for depth in range(sys.maxsize**10):
+        result = depth_limited_search(begin_state, goal_state, depth)
+        if result != "cutoff":
+            return result
+
 def print_actions(node):
     while node != None:
         print(node.action)
@@ -220,7 +249,7 @@ def main():
         begin_state = State.from_string(open(sys.argv[1]).read())
         goal_state = State.from_string(open(sys.argv[2]).read())
 
-        dfs(begin_state, goal_state)
+    iterative_deepening_search(begin_state, goal_state)
 
 # Prevent running if imported as a module
 if __name__ == "__main__":
