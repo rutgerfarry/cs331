@@ -187,19 +187,18 @@ def bfs(begin_state, goal_state):
     frontier = queue.Queue()
     frontier.put(Node(begin_state, None, None))
     explored = set()
+    nodes_expanded = 0
 
-    while True:
-        if frontier.empty():
-            return False
-
+    while frontier:
         node = frontier.get()
         explored.add(node)
         children = child_nodes(node)
         for child in children:
-            if child not in explored or child not in frontier:
+            nodes_expanded += 1
+            if child not in explored:
                 if goal_state == child.state:
-                    print_actions(child)
-                    return True
+                    # Done!
+                    return child, nodes_expanded
                 frontier.put(child)
 
 def dfs(begin_state, goal_state):
@@ -209,85 +208,113 @@ def dfs(begin_state, goal_state):
     frontier = queue.LifoQueue()
     frontier.put(Node(begin_state, None, None))
     explored = set()
+    nodes_expanded = 0
 
-    while True:
-        if frontier.empty():
-            return False
-
+    while frontier:
         node = frontier.get()
         explored.add(node)
         children = child_nodes(node)
         for child in children:
-            if child not in explored or child not in frontier:
+            nodes_expanded += 1
+            if child not in explored:
                 if goal_state == child.state:
-                    print_actions(child)
-                    return True
+                    # Done!
+                    return child, nodes_expanded
                 frontier.put(child)
 
-def depth_limited_search(begin_state, goal_state, limit):
+def depth_limited_search(begin_state, goal_state, limit, nodes_expanded):
     start_node = Node(begin_state, None, None)
-    return recursive_dls(start_node, goal_state, limit)
+    return recursive_dls(start_node, goal_state, limit, nodes_expanded)
 
-def recursive_dls(node, goal_state, limit):
+def recursive_dls(node, goal_state, limit, nodes_expanded):
     if node.state == goal_state:
-        return True
+        return node
     elif limit == 0:
         return "cutoff"
     else:
         cutoff_occurred = False
         for child in child_nodes(node):
-            result = recursive_dls(child, goal_state, limit - 1)
+            nodes_expanded += 1
+            result = recursive_dls(child, goal_state, limit - 1, nodes_expanded)
             if result == "cutoff":
                 cutoff_occurred = True
-            elif result == True:
-                print_actions(child)
-                return True
+            elif result:
+                # Done!
+                return result
         if cutoff_occurred:
             return "cutoff"
         else:
             return False
 
-def iterative_deepening_search(begin_state, goal_state):
+def iddfs(begin_state, goal_state):
+    nodes_expanded = 0
     for depth in range(sys.maxsize**10):
-        result = depth_limited_search(begin_state, goal_state, depth)
+        result = depth_limited_search(begin_state, goal_state, depth, nodes_expanded)
         if result != "cutoff":
-            return result
+            return result, nodes_expanded
 
 # Lower score is closer to solution
 def score(current_state, goal_state):
     return ((goal_state.missionary_left - current_state.missionary_left) +
             (goal_state.cannibal_left - current_state.cannibal_left))
 
-def a_star(begin_state, goal_state):
+def astar(begin_state, goal_state):
     if begin_state == goal_state:
         return True
     begin_node = Node(begin_state, None, None)
     frontier = queue.PriorityQueue()
     frontier.put((score(begin_node.state, goal_state), begin_node))
     explored = set()
+    nodes_expanded = 0
 
     while frontier:
         node = frontier.get()[1]
         explored.add(node)
         for child in child_nodes(node):
+            nodes_expanded += 1
             if child not in explored:
                 if goal_state == child.state:
-                    print_actions(child)
-                    return True
+                    # Done!
+                    return child, nodes_expanded
                 frontier.put((score(child.state, goal_state), child))
 
-def print_actions(node):
+def action_sequence(node):
+    actions = []
     while node != None:
-        print(node.action)
-        print(node.state)
+        actions.append(node.action)
         node = node.parent
+    return list(reversed(actions))
+
+def action_sequence_string(result):
+    actions_string = ""
+    for action in action_sequence(result[0]):
+        if action:
+            actions_string += (action + "\n")
+    actions_string += "done in {} steps!\n".format(len(action_sequence(result[0])))
+    actions_string += "{} nodes were expanded".format(result[1])
+    return actions_string
 
 def main():
-    if len(sys.argv) == 4:
+    if len(sys.argv) >= 4:
         begin_state = State.from_string(open(sys.argv[1]).read())
         goal_state = State.from_string(open(sys.argv[2]).read())
+        mode = sys.argv[3]
 
-    a_star(begin_state, goal_state)
+        if mode == "bfs":
+            result = bfs(begin_state, goal_state)
+        elif mode == "dfs":
+            result = dfs(begin_state, goal_state)
+        elif mode == "iddfs":
+            result = iddfs(begin_state, goal_state)
+        elif mode == "astar":
+            result = astar(begin_state, goal_state)
+        else:
+            sys.exit("Error: mode argument must be either 'bfs', 'dfs', 'iddfs' or 'astar'")
+
+        if len(sys.argv) >= 5:
+            open(sys.argv[4], "w").write(action_sequence_string(result))
+
+        print(action_sequence_string(result))
 
 # Prevent running if imported as a module
 if __name__ == "__main__":
