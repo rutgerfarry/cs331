@@ -28,7 +28,6 @@ class State(object):
                  boat_location):
         self.missionary_left = missionary_left
         self.cannibal_left = cannibal_left
-
         self.missionary_right = missionary_right
         self.cannibal_right = cannibal_right
 
@@ -68,13 +67,12 @@ class State(object):
         return hash(tuple(sorted(self.__dict__.items())))
 
     def __repr__(self):
-        return "{},{},{}\n{},{},{}".format(
-            self.missionary_left,
-            self.cannibal_left,
-            1 if self.boat_location == Boat.LEFT else 0,
-            self.missionary_right,
-            self.cannibal_right,
-            1 if self.boat_location == Boat.RIGHT else 0)
+        return ("Left Bank: {} missionaries, ".format(self.missionary_left)
+                + "{} cannibals, ".format(self.cannibal_left)
+                + "{} boat\n".format(1 if self.boat_location == Boat.LEFT else 0)
+                + "Right Bank: {} missionaries, ".format(self.missionary_right)
+                + "{} cannibals, ".format(self.cannibal_right)
+                + "{} boat\n".format(1 if self.boat_location == Boat.RIGHT else 0))
 
 class Node(object):
     def __init__(self, state, parent, action):
@@ -85,10 +83,65 @@ class Node(object):
     def __repr__(self):
         return str(self.state)
 
-# Takes a state and returns the set of possible actions
-def actions(state):
-    action_set = set()
-    return
+# Takes a state and returns the set of possible successor states
+def successor_states(state):
+    successors_set = set()
+
+    if state.boat_location == Boat.LEFT:
+        # Put one missionary in the boat
+        successor = State(state.missionary_left - 1, state.cannibal_left,
+                          state.missionary_right + 1, state.cannibal_right, Boat.RIGHT)
+        if successor.is_valid():
+            successors_set.add(successor)
+        # Put two missionaries in the boat
+        successor = State(state.missionary_left - 2, state.cannibal_left,
+                          state.missionary_right + 2, state.cannibal_right, Boat.RIGHT)
+        if successor.is_valid():
+            successors_set.add(successor)
+        # Put one cannibal in the boat
+        successor = State(state.missionary_left, state.cannibal_left - 1,
+                          state.missionary_right, state.cannibal_right + 1, Boat.RIGHT)
+        if successor.is_valid():
+            successors_set.add(successor)
+        # Put one cannibal and one missionary in the boat
+        successor = State(state.missionary_left - 1, state.cannibal_left - 1,
+                          state.missionary_right + 1, state.cannibal_right + 1, Boat.RIGHT)
+        if successor.is_valid():
+            successors_set.add(successor)
+        # Put two cannibals in the boat
+        successor = State(state.missionary_left, state.cannibal_left - 2,
+                          state.missionary_right, state.cannibal_right + 2, Boat.RIGHT)
+        if successor.is_valid():
+            successors_set.add(successor)
+
+    elif state.boat_location == Boat.RIGHT:
+        # Put one missionary in the boat
+        successor = State(state.missionary_left + 1, state.cannibal_left,
+                          state.missionary_right - 1, state.cannibal_right, Boat.LEFT)
+        if successor.is_valid():
+            successors_set.add(successor)
+        # Put two missionaries in the boat
+        successor = State(state.missionary_left + 2, state.cannibal_left,
+                          state.missionary_right - 2, state.cannibal_right, Boat.LEFT)
+        if successor.is_valid():
+            successors_set.add(successor)
+        # Put one cannibal in the boat
+        successor = State(state.missionary_left, state.cannibal_left + 1,
+                          state.missionary_right, state.cannibal_right - 1, Boat.LEFT)
+        if successor.is_valid():
+            successors_set.add(successor)
+        # Put one cannibal and one missionary in the boat
+        successor = State(state.missionary_left + 1, state.cannibal_left + 1,
+                          state.missionary_right - 1, state.cannibal_right - 1, Boat.LEFT)
+        if successor.is_valid():
+            successors_set.add(successor)
+        # Put two cannibals in the boat
+        successor = State(state.missionary_left, state.cannibal_left + 2,
+                          state.missionary_right, state.cannibal_right - 2, Boat.LEFT)
+        if successor.is_valid():
+            successors_set.add(successor)
+
+    return successors_set
 
 def main():
     if len(sys.argv) == 4:
@@ -100,8 +153,9 @@ def main():
         print("begin state:::::::::::::::::::::::::::")
         print(begin_state)
 
-        print("final state:::::::::::::::::::::::::::")
-        print(final_state)
+        print("successors:::::::::::::::::::::::::::")
+        for successor in successor_states(begin_state):
+            print("{}\n".format(successor))
 
 # Prevent running if imported as a module
 if __name__ == "__main__":
