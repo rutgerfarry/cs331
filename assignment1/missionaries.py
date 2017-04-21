@@ -1,11 +1,11 @@
 import sys
 import queue
-from enum import Enum
 
-class Boat(Enum):
-    """ Simple enumeration to represent the state of the boat """
-    LEFT = True
-    RIGHT = False
+def enum(**enums):
+    return type('Enum', (), enums)
+
+""" Simple enumeration to represent the state of the boat """
+Boat = enum(LEFT=1, RIGHT=2)
 
 class State(object):
     """Represents a state in the missionaries and cannibals problem
