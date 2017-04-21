@@ -1,4 +1,5 @@
 import sys
+import queue
 from enum import Enum
 
 class Boat(Enum):
@@ -84,7 +85,8 @@ class Node(object):
         return str(self.state)
 
 # Takes a state and returns the set of possible successor states
-def successor_states(state):
+def child_nodes(node):
+    state = node.state
     successors_set = set()
 
     if state.boat_location == Boat.LEFT:
@@ -92,70 +94,111 @@ def successor_states(state):
         successor = State(state.missionary_left - 1, state.cannibal_left,
                           state.missionary_right + 1, state.cannibal_right, Boat.RIGHT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put one missionary in the boat"))
         # Put two missionaries in the boat
         successor = State(state.missionary_left - 2, state.cannibal_left,
                           state.missionary_right + 2, state.cannibal_right, Boat.RIGHT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put two missionaries in the boat"))
         # Put one cannibal in the boat
         successor = State(state.missionary_left, state.cannibal_left - 1,
                           state.missionary_right, state.cannibal_right + 1, Boat.RIGHT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put one cannibal in the boat"))
         # Put one cannibal and one missionary in the boat
         successor = State(state.missionary_left - 1, state.cannibal_left - 1,
                           state.missionary_right + 1, state.cannibal_right + 1, Boat.RIGHT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put one cannibal one missionary in the boat"))
         # Put two cannibals in the boat
         successor = State(state.missionary_left, state.cannibal_left - 2,
                           state.missionary_right, state.cannibal_right + 2, Boat.RIGHT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put two cannibals in the boat"))
 
     elif state.boat_location == Boat.RIGHT:
         # Put one missionary in the boat
         successor = State(state.missionary_left + 1, state.cannibal_left,
                           state.missionary_right - 1, state.cannibal_right, Boat.LEFT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put one missionary in the boat"))
         # Put two missionaries in the boat
         successor = State(state.missionary_left + 2, state.cannibal_left,
                           state.missionary_right - 2, state.cannibal_right, Boat.LEFT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put two missionaries in the boat"))
         # Put one cannibal in the boat
         successor = State(state.missionary_left, state.cannibal_left + 1,
                           state.missionary_right, state.cannibal_right - 1, Boat.LEFT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put one cannibal in the boat"))
         # Put one cannibal and one missionary in the boat
         successor = State(state.missionary_left + 1, state.cannibal_left + 1,
                           state.missionary_right - 1, state.cannibal_right - 1, Boat.LEFT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put one cannibal one missionary in the boat"))
         # Put two cannibals in the boat
         successor = State(state.missionary_left, state.cannibal_left + 2,
                           state.missionary_right, state.cannibal_right - 2, Boat.LEFT)
         if successor.is_valid():
-            successors_set.add(successor)
+            successors_set.add(Node(successor,
+                                    node,
+                                    "put two cannibals in the boat"))
 
     return successors_set
+
+def bfs(begin_state, goal_state):
+    if begin_state == goal_state:
+        return True
+
+    frontier = queue.Queue()
+    frontier.put(Node(begin_state, None, None))
+    explored = set()
+
+    while True:
+        if frontier.empty():
+            return False
+
+        node = frontier.get()
+        explored.add(node)
+        children = child_nodes(node)
+        for child in children:
+            if child not in explored or child not in frontier:
+                if goal_state == child.state:
+                    print_actions(child)
+                    return True
+                frontier.put(child)
+
+def print_actions(node):
+    while node != None:
+        print(node.action)
+        print(node.state)
+        node = node.parent
 
 def main():
     if len(sys.argv) == 4:
         begin_state = State.from_string(open(sys.argv[1]).read())
-        final_state = State.from_string(open(sys.argv[2]).read())
+        goal_state = State.from_string(open(sys.argv[2]).read())
 
-        explored_set = set()
-
-        print("begin state:::::::::::::::::::::::::::")
-        print(begin_state)
-
-        print("successors:::::::::::::::::::::::::::")
-        for successor in successor_states(begin_state):
-            print("{}\n".format(successor))
+        bfs(begin_state, goal_state)
 
 # Prevent running if imported as a module
 if __name__ == "__main__":
