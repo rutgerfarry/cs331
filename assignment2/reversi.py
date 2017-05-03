@@ -1,4 +1,5 @@
 import sys
+import math
 
 USAGE_ERROR = """\
 Usage: python3 reversi <player1 TYPE> <player2 TYPE>
@@ -10,35 +11,55 @@ class PlayerType:
     ROBOT = 2
 
 class Player:
-    ONE = 1
-    TWO = 2
+    ONE = 'X'
+    TWO = 'O'
 
-class Square:
-    PLAYER_1 = 'X'
-    PLAYER_2 = 'O'
-    EMPTY = '.'
+EMPTY_SQUARE = '.'
 
 def create_board(size):
     """ Creates a board, including correct starting locations.
-    Will have a range error if board is smaller than 1. """
-    board = [[Square.EMPTY for x in range(size)] for y in range(size)]
+    Will have a range error if size is smaller than 2. """
 
-    mid = size // 2
-    board[mid - 1][mid - 1] = Square.PLAYER_2
-    board[mid][mid - 1] = Square.PLAYER_1
-    board[mid - 1][mid] = Square.PLAYER_1
-    board[mid][mid] = Square.PLAYER_2
+    board = [EMPTY_SQUARE for x in range(size**2)]
+
+    mid = board_size(board) // 2
+    board = move(Player.TWO, mid - 1, mid - 1, board)
+    board = move(Player.ONE, mid, mid - 1, board)
+    board = move(Player.ONE, mid - 1, mid, board)
+    board = move(Player.TWO, mid, mid, board)
 
     return board
 
 def print_board(board):
-    for y, column in enumerate(board):
-        for x, _ in enumerate(column):
-            print(str(board[x][y]) + ' ', end='')
-        print()
+    size = board_size(board)
+    # Print letters for each column
+    print('     ', end='')
+    print(' '.join([chr(i + 65) for i in range(0, size)]))
+    print('    ' + '_' + '__' * size)
+
+    # Print numbers for row followed by board pieces
+    for y in range(0, len(board), size):
+        print(str(int(y / size)) + '  | ', end='')
+        print(' '.join(board[y : y + size]))
+
+def board_size(board):
+    return int(math.sqrt(len(board)))
+
+def move(player, x, y, board):
+    # Allow x to be either an int or str
+    if isinstance(x, str):
+        x = ord(x.upper()) - 65
+
+    size = board_size(board)
+    i = x * size + y
+    board[i] = player
+    return board
 
 def player_type_from_argv(i):
-    # Ensure we don't go out of range
+    """ Parses argv at the given index and returns whether user
+    has selected to play against a human or robot """
+
+    # Ensure we don't look out of range
     if len(sys.argv) < i:
         sys.exit(USAGE_ERROR)
 
