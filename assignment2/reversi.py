@@ -12,8 +12,10 @@ class IllegalMoveError(Exception):
         self.player = player
         self.x = index_as_tuple(i, board)[0]
         self.y = index_as_tuple(i, board)[1]
+        self.board = board
 
     def __str__(self):
+        print_board(self.board)
         return "{} cannot move to square ({}, {})".format(self.player,
                                                           chr(self.x + 65),
                                                           self.y)
@@ -126,6 +128,8 @@ def make_flips(i, player, delta, board):
 def make_move(player, x, y, board):
     """ User-facing move function with validation. """
 
+    board = list(board)
+
     i = tuple_as_index((x, y), board)
     if i in valid_moves(player, board):
         for d in deltas(board):
@@ -141,6 +145,9 @@ def dangerously_make_move(player, x, y, board):
     i = tuple_as_index((x, y), board)
     board[i] = player
     return board
+
+def player_score(player, board):
+    return len([piece for piece in board if piece == player])
 
 # Strategies
 
@@ -170,6 +177,30 @@ def human_strategy(player, board):
 
     return human_strategy(player, board)
 
+# Minimax
+
+def minimax(player, board, depth):
+    moves = valid_moves(player, board)
+    def value(board):
+        return -minimax(opponent(player), board, depth - 1)[0]
+
+    if depth == 0:
+        return player_score(player, board), None
+
+    if moves == {None}:
+        return player_score(player, board), None
+
+    moves.remove(None)
+
+    return max((value(make_move(player,
+                                index_as_tuple(m, board)[0],
+                                index_as_tuple(m, board)[1],
+                                board)), m) for m in moves)
+
+def minimax_strategy(player, board):
+    move = minimax(player, board, 4)
+    board = make_move(board, move[0], move[1], board)
+    return board
 
 def player_strategy_from_argv(i):
     """ Parses argv at the given index and returns strategy for user """
@@ -180,8 +211,8 @@ def player_strategy_from_argv(i):
 
     if sys.argv[i].lower() == "human":
         return human_strategy
-    # elif sys.argv[i].lower() == "minimax":
-    #     return PlayerType.ROBOT
+    elif sys.argv[i].lower() == "minimax":
+        return minimax_strategy
     else:
         sys.exit(USAGE_ERROR)
 
@@ -199,11 +230,15 @@ def main():
 
     while valid_moves(current_player, board) != {None}:
         print()
+        print("Player 1 score: {}".format(player_score(Player.ONE, board)))
+        print("Player 2 score: {}".format(player_score(Player.TWO, board)))
         print_board(board)
         print("Player {}'s turn:".format(current_player))
+        print(minimax(current_player, board, 1))
         board = strategy(current_player)(current_player, board)
         current_player = opponent(current_player)
 
+    print_board(board)
     print("No more moves are possible, game over!")
 
 # Prevent running if imported as a module
