@@ -1,3 +1,4 @@
+import sys
 from lib import preprocess, train_naive_bayes, test_naive_bayes
 
 def print_test_results(results, test_docs):
@@ -31,9 +32,23 @@ def test(test_docs, prior, likelihood, classes, vocab):
 # Prevent running if imported as a module
 if __name__ == '__main__':
     classes = [0, 1]
+    # perform test on the training data
+    sys.stdout = open('output.txt', 'wt')
+    vocab, documents = preprocess('trainingSet.txt', 'preprocessed_train.txt')
+    _, test_documents = preprocess('trainingSet.txt', 'preprocessed_train.txt')
+
+    prior, likelihood = train_naive_bayes(vocab, documents, classes)
+
+    print("\n")
+    print("testing on training data")
+    test(documents, prior, likelihood, classes, vocab)
+
+    # perform test on the testing data
     vocab, documents = preprocess('trainingSet.txt', 'preprocessed_train.txt')
     _, test_documents = preprocess('testSet.txt', 'preprocessed_test.txt')
 
     prior, likelihood = train_naive_bayes(vocab, documents, classes)
-
+    print("\n")
+    print("testing on testing data")
     test(test_documents, prior, likelihood, classes, vocab)
+
