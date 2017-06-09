@@ -7,7 +7,7 @@ def print_test_results(results, test_docs):
             misclassified_docs.append(doc + tuple([result]))
 
     for doc in misclassified_docs:
-        print(f'misclassified {doc[0]}: actual: {doc[2]}, expected: {doc[1]}')
+        print('misclassified {}: actual: {}, expected: {}'.format(doc[0], doc[2], doc[1]))
 
     correct = len(test_docs) - len(misclassified_docs)
     incorrect = len(misclassified_docs)
@@ -16,10 +16,10 @@ def print_test_results(results, test_docs):
     print("\n")
     print("****************************************")
     print("* RESULTS:")
-    print(f"*     Correct:   {correct}")
-    print(f"*     Incorrect: {incorrect}")
+    print("*     Correct:   {}".format(correct))
+    print("*     Incorrect: {}".format(incorrect))
     print("*")
-    print(f"*     Accuracy:  {accuracy}")
+    print("*     Accuracy:  {}".format(accuracy))
     print("****************************************")
 
 def test(test_docs, prior, likelihood, classes, vocab):
